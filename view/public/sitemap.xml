@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://incidents.deco.page/</loc>
+    <lastmod>2025-01-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Note: Public incident URLs are dynamically generated -->
+  <!-- Format: https://incidents.deco.page/incident/{id} -->
+  <!-- These should be added programmatically as incidents are created -->
+  
+  <!-- Admin routes are excluded from sitemap as they require authentication -->
+</urlset>

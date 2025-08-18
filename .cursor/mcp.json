@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "incidents": {
+      "type": "http",
+      "url": "https://localhost-b0d7dbcf.deco.host/mcp"
+    }
+  }
+}

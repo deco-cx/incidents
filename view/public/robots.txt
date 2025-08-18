@@ -1,0 +1,18 @@
+# Robots.txt for Deco Incidents Management System
+# https://incidents.deco.page
+
+User-agent: *
+Allow: /
+Allow: /incident/*
+
+# Disallow admin routes for search engines
+Disallow: /admin*
+
+# Allow specific public pages
+Allow: /
+
+# Sitemap location
+Sitemap: https://incidents.deco.page/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
