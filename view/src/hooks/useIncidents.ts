@@ -13,10 +13,17 @@ export interface AffectedResource {
   severity: "Operational" | "Under Maintenance" | "Degraded Performance" | "Partial Outage" | "Major Outage";
 }
 
+export interface AttachmentEvidence {
+  type: "file" | "link";
+  url: string;
+  name?: string;
+  mimeType?: string;
+}
+
 export interface TimelineEvent {
   time: Date;
   event: string;
-  attachmentUrl?: string;
+  attachments?: AttachmentEvidence[];
   createdBy: string;
 }
 
@@ -123,7 +130,7 @@ export const useAddTimelineEvent = () => {
     mutationFn: (data: {
       incidentId: string;
       event: string;
-      attachmentUrl?: string;
+      attachments?: AttachmentEvidence[];
     }) => client.ADD_TIMELINE_EVENT(data),
     onSuccess: (data, variables) => {
       // Invalidate specific incident and list

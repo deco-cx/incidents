@@ -57,6 +57,10 @@ function EditIncidentPage() {
   // Timeline event state
   const [newEvent, setNewEvent] = useState("");
   const [isAddingEvent, setIsAddingEvent] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [eventDescription, setEventDescription] = useState("");
+  const [eventAttachments, setEventAttachments] = useState<Array<{ type: "file" | "link"; url: string; name?: string; mimeType?: string }>>([]);
+  const descriptionLimit = 600;
 
   // Initialize form when incident loads
   useEffect(() => {
@@ -87,14 +91,16 @@ function EditIncidentPage() {
   };
 
   const handleAddTimelineEvent = async () => {
-    if (!newEvent.trim()) return;
-    
+    if (!eventDescription.trim()) return;
     try {
       await addTimelineEvent.mutateAsync({
         incidentId: id,
-        event: newEvent,
+        event: eventDescription,
+        attachments: eventAttachments,
       });
-      setNewEvent("");
+      setEventDescription("");
+      setEventAttachments([]);
+      setShowEventModal(false);
       setIsAddingEvent(false);
       toast.success("Timeline event added!");
     } catch (error: any) {
@@ -381,7 +387,7 @@ function EditIncidentPage() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Timeline</h3>
                 <Button 
-                  onClick={() => setIsAddingEvent(true)}
+                  onClick={() => { setIsAddingEvent(true); setShowEventModal(true); }}
                   size="sm"
                   style={{
                     backgroundColor: 'var(--primary)',
@@ -393,47 +399,106 @@ function EditIncidentPage() {
                 </Button>
               </div>
 
-              {/* Add Event Form */}
-              {isAddingEvent && (
-                <div className="mb-4 p-3 border rounded-lg" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--muted)' }}>
-                  <textarea
-                    value={newEvent}
-                    onChange={(e) => setNewEvent(e.target.value)}
-                    placeholder="Describe what happened..."
-                    className="w-full border rounded-md p-2 text-sm mb-2 resize-none"
-                    style={{
-                      borderColor: 'var(--border)',
-                      backgroundColor: 'var(--background)',
-                      color: 'var(--foreground)'
-                    }}
-                    rows={3}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleAddTimelineEvent}
-                      disabled={!newEvent.trim() || addTimelineEvent.isPending}
-                      size="sm"
-                      style={{
-                        backgroundColor: 'var(--primary)',
-                        color: 'var(--primary-foreground)'
+              {/* Add Event Modal */}
+              {showEventModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  {/* Backdrop */}
+                  <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }} onClick={() => setShowEventModal(false)} />
+                  {/* Modal */}
+                  <div className="relative w-full max-w-xl mx-4 border rounded-lg p-4" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', color: 'var(--card-foreground)' }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-lg font-semibold">Add Timeline Event</h4>
+                      <button onClick={() => setShowEventModal(false)} className="p-1 border rounded" style={{ borderColor: 'var(--border)' }}>
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <label className="block text-sm font-medium mb-1">Description <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>({eventDescription.length}/{descriptionLimit})</span></label>
+                    <textarea
+                      value={eventDescription}
+                      onChange={(e) => {
+                        const value = e.target.value.slice(0, descriptionLimit);
+                        setEventDescription(value);
                       }}
-                    >
-                      {addTimelineEvent.isPending ? "Adding..." : "Add"}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setIsAddingEvent(false);
-                        setNewEvent("");
-                      }}
-                      size="sm"
-                      variant="outline"
-                      style={{
-                        borderColor: 'var(--border)',
-                        color: 'var(--foreground)'
-                      }}
-                    >
-                      Cancel
-                    </Button>
+                      placeholder="Describe what happened (max 600 characters)..."
+                      className="w-full border rounded-md p-2 text-sm mb-3 resize-none"
+                      style={{ borderColor: 'var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
+                      rows={5}
+                      maxLength={descriptionLimit}
+                    />
+
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium mb-2">Add evidences</label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <input
+                          type="file"
+                          accept="image/png,application/pdf"
+                          multiple
+                          onChange={async (e) => {
+                            const files = Array.from(e.target.files || []);
+                            const toDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+                              const reader = new FileReader();
+                              reader.onload = () => resolve(reader.result as string);
+                              reader.onerror = reject;
+                              reader.readAsDataURL(file);
+                            });
+                            const newItems: Array<{ type: "file"; url: string; name?: string; mimeType?: string }> = [];
+                            for (const f of files) {
+                              try {
+                                const dataUrl = await toDataUrl(f);
+                                newItems.push({ type: "file", url: dataUrl, name: f.name, mimeType: f.type });
+                              } catch {
+                                // ignore individual file failures
+                              }
+                            }
+                            if (newItems.length > 0) setEventAttachments((prev) => [...prev, ...newItems]);
+                          }}
+                          className="text-sm"
+                        />
+                        <input
+                          type="url"
+                          placeholder="https://evidence-link"
+                          className="flex-1 border rounded-md p-2 text-sm"
+                          style={{ borderColor: 'var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const target = e.target as HTMLInputElement;
+                              if (target.value) {
+                                setEventAttachments((prev) => [...prev, { type: 'link', url: target.value }]);
+                                target.value = '';
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {eventAttachments.length > 0 && (
+                        <div className="border rounded p-2 max-h-40 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
+                          {eventAttachments.map((att, idx) => (
+                            <div key={idx} className="flex items-center justify-between py-1 text-sm">
+                              <span className="truncate mr-2">{att.type === 'link' ? att.url : (att.name || att.url)}</span>
+                              <button onClick={() => setEventAttachments(eventAttachments.filter((_, i) => i !== idx))} className="text-xs underline">Remove</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        onClick={() => setShowEventModal(false)}
+                        variant="outline"
+                        style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleAddTimelineEvent}
+                        disabled={!eventDescription.trim() || addTimelineEvent.isPending}
+                        style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}
+                      >
+                        {addTimelineEvent.isPending ? 'Adding...' : 'Add Event'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}

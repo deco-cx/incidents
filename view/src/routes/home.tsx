@@ -26,7 +26,7 @@ function HomePage() {
         {/* Header */}
         <header className="flex justify-between items-center mb-12">
           <div className="flex items-center gap-4">
-            <img src="/logo.png" alt="Deco" className="w-10 h-10" />
+            <img src="/logo.png" alt="Deco" className="h-10 w-auto object-contain" />
             <div>
               <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
                 Incidents Management

@@ -129,7 +129,7 @@ function AdminDashboard() {
         {/* Header */}
         <header className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            <img src="/logo.png" alt="Deco" className="w-8 h-8" />
+            <img src="/logo.png" alt="Deco" className="h-8 w-auto object-contain" />
             <div>
               <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
                 Incident Management
@@ -153,18 +153,6 @@ function AdminDashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              asChild 
-              variant="outline"
-              style={{
-                borderColor: 'var(--border)',
-                color: 'var(--foreground)'
-              }}
-            >
-              <a href="/admin/new-incident">
-                🤖 Create with AI
-              </a>
-            </Button>
             <Button 
               asChild
               style={{

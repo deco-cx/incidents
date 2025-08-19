@@ -56,7 +56,7 @@ function PublicIncidentPage() {
         {/* Header */}
         <header className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            <img src="/logo.png" alt="Deco" className="w-8 h-8" />
+            <img src="/logo.png" alt="Deco" className="h-8 w-auto object-contain" />
             <div>
               <h1 className="text-xl font-semibold" style={{ color: 'var(--foreground)' }}>
                 Deco Status

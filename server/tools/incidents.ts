@@ -32,10 +32,18 @@ const AffectedResourceSchema = z.object({
   severity: SeverityLevel,
 });
 
+const AttachmentSchema = z.object({
+  type: z.enum(["file", "link"]),
+  url: z.string(),
+  name: z.string().optional(),
+  mimeType: z.string().optional(),
+});
+
 const TimelineEventSchema = z.object({
   time: z.string().transform((str) => new Date(str)), // ISO string to Date
   event: z.string(),
-  attachmentUrl: z.string().optional(),
+  // Optional list of evidences (files or links)
+  attachments: z.array(AttachmentSchema).optional(),
   createdBy: z.string(),
 });
 
@@ -320,7 +328,7 @@ export const createAddTimelineEventTool = (env: Env) =>
     inputSchema: z.object({
       incidentId: z.string(),
       event: z.string().min(1, "Event description is required"),
-      attachmentUrl: z.string().optional(),
+      attachments: z.array(AttachmentSchema).optional(),
     }),
     outputSchema: z.object({
       incident: IncidentSchema,
@@ -351,7 +359,7 @@ export const createAddTimelineEventTool = (env: Env) =>
       const newEvent = {
         time: new Date(),
         event: context.event,
-        attachmentUrl: context.attachmentUrl,
+        attachments: context.attachments,
         createdBy: user.id,
       };
 
